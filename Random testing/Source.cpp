@@ -6,21 +6,34 @@
 #include <limits>
 #include <string>
 #include <cstdlib>
+#include <chrono>
+#include <thread>
 
-bool separate_words(std::string text) {
+//******* Dont got time to fix but the words typed where more than the words inside the word list likey needs to be reset inset of just stacking up
+
+int words_typed{};
+// Set time limit (in seconds)
+int timeLimit = 30;
+std::vector<std::string> vectorwordlist;
+
+void separate_words(const std::string text) {
     std::string word = "";
 
-    for (int i = 0 ; i < text.size(); i++) {
+    for (int i = 0; i < text.size(); i++) {
         if (text[i] == ' ') {
-
-            break;
-
-        } else{
-
-        word += text[i];
-
+            if (!word.empty()) { // To avoid pushing empty words for consecutive spaces
+                vectorwordlist.push_back(word);
+                word = ""; // Reset word
+            }
         }
-        
+        else {
+            word += text[i];
+        }
+    }
+
+    // Push the last word if it exists
+    if (!word.empty()) {
+        vectorwordlist.push_back(word);
     }
 }
 
@@ -40,13 +53,34 @@ void ReleaseKey(WORD key) {
 }
 
 void TypeString(const std::string& text) {
+    // Get the starting time
+    auto startTime = std::chrono::steady_clock::now();
+    int lastPrintedTime = -1;  // Initialize to an invalid value
+
     for (char c : text) {
-        int ran = (rand() % 400) + 0;
+        auto currentTime = std::chrono::steady_clock::now();
+        std::chrono::duration<int> elapsedTime = std::chrono::duration_cast<std::chrono::seconds>(currentTime - startTime);
+        
+        // Only print if the time has changed (i.e., every second)
+        if (elapsedTime.count() != lastPrintedTime) {
+            std::cout << "Elapsed Time: " << elapsedTime.count() << " seconds\n";
+            lastPrintedTime = elapsedTime.count();  // Update the last printed time
+        }
+        if (elapsedTime.count() >= timeLimit) {
+            std::cout << "Out of time ending loop\n time limit: " << timeLimit << std::endl;
+            break;
+        }
+        
+        int ran = (rand() % 100) + 0;
         SHORT vk = VkKeyScan(c);  // Get the virtual key for the character
         PressKey(vk);
         ReleaseKey(vk);
         Sleep(ran);
+        if (vk == VK_SPACE) {
+            words_typed++;
+        }
     }
+    
 }
 // Map of each letter and the Hexadecimal code for them
 std::map<char, int> keyMap = {
@@ -60,42 +94,47 @@ std::map<char, int> keyMap = {
 };
 
 int main() {
+    // Set the time limit (in seconds)
+    int timeLimit = 30;  // Time limit of 10 seconds
     srand(time(NULL));
+    std::string wordlist = "No Word list has been input";
+    std::cout << "Please enter your word list: ";
+    std::cin.clear();
+    std::getline(std::cin, wordlist);
     while (true) {
-        std::cout << "Press the 'F2' key to continue...\n";
+    std::cout << "Press the 'F2' key to continue or the 'F3' key for a new word list...\n";
 
-        // Loop until the key is pressed
-        while (true) {
-            // Check if the key is pressed
-            if (GetAsyncKeyState(VK_F2) & 0x8000) { // Replace the key with any key
-                std::cout << "'F2' key pressed! Continuing...\n";
-                break; // Exit the loop when keyMap[' '] is pressed
-            }
-            // Check if the key is pressed
-            if (GetAsyncKeyState(keyMap['X']) & 0x8000) { // Replace the key with any Key
+     // Loop until the key is pressed
+     while (true) {
+         // Check if the key is pressed
+         if (GetAsyncKeyState(VK_F2) & 0x8000) { // Replace the key with any key
+             std::cout << "'F2' key pressed! Continuing...\n";
+             break; // Exit the loop when keyMap[' '] is pressed
+         }
+         // Check if the key is pressed
+         if (GetAsyncKeyState(keyMap['X']) & 0x8000) { // Replace the key with any Key
+            return 0;
+         }
+         if (GetAsyncKeyState(VK_F3) & 0x8000) {
+             std::cout << "Please enter your word list: ";
+             std::cin.clear();  // Clear any errors
+             std::getline(std::cin, wordlist);  // Read a new word list from the user
+             std::cout << "Press the 'F2' key to continue or the 'F3' key for a new word list...\n";
+         }
+        Sleep(100); // Add a small delay to prevent high CPU usage
+     }
+     vectorwordlist.clear();//allows code to run multiple times without stacking up in vector
 
-                return 0;
-            }
-            Sleep(100); // Add a small delay to prevent high CPU usage
-        }
+    // Continue with the rest of the code
 
-        // Continue with the rest of the code
-        std::string wordlist = "you even go people eye since open change make late eye under after begin where feel man become where up now mean because";
-        TypeString(wordlist);
+    
+    separate_words(wordlist);
+    //for (int i = 0; i < vectorwordlist.size(); i++) {std::cout << vectorwordlist[i] << '\n';}
+    
+    TypeString(wordlist);
+    std::cout << vectorwordlist.size() << " Words are inside the word list\n" <<words_typed << " Words have been typed\n";
 
-
-        /*PressKey(VK_LWIN);
-        PressKey(keyMap['R']);
-        ReleaseKey(VK_LWIN);
-        ReleaseKey(keyMap['R']);
-        Sleep(100);
-        TypeString("notepad");
-        Sleep(200);
-        PressKey(VK_RETURN);
-        ReleaseKey(VK_RETURN);*/
-        
-        
-     
+    Sleep(500);
      
     }
     return 0;
