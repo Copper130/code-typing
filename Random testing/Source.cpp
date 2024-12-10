@@ -9,12 +9,12 @@
 #include <chrono>
 #include <thread>
 
-//******* Dont got time to fix but the words typed where more than the words inside the word list likey needs to be reset inset of just stacking up
 
+int randtime = 2;
 int words_typed{};
 // Set time limit (in seconds)
-int timeLimit = 30;
-std::vector<std::string> vectorwordlist;
+int timeLimit = 400;
+std::vector<std::string> vectorwordlist = {};
 
 void separate_words(const std::string text) {
     std::string word = "";
@@ -71,16 +71,21 @@ void TypeString(const std::string& text) {
             break;
         }
         
-        int ran = (rand() % 100) + 0;
+        float ran = rand() % randtime;
+        
         SHORT vk = VkKeyScan(c);  // Get the virtual key for the character
         PressKey(vk);
         ReleaseKey(vk);
         Sleep(ran);
+        
         if (vk == VK_SPACE) {
             words_typed++;
+            PressKey(VK_RETURN);
+            ReleaseKey(VK_RETURN);
         }
     }
-    
+    words_typed++;
+   
 }
 // Map of each letter and the Hexadecimal code for them
 std::map<char, int> keyMap = {
@@ -94,15 +99,14 @@ std::map<char, int> keyMap = {
 };
 
 int main() {
-    // Set the time limit (in seconds)
-    int timeLimit = 30;  // Time limit of 10 seconds
+
     srand(time(NULL));
     std::string wordlist = "No Word list has been input";
     std::cout << "Please enter your word list: ";
     std::cin.clear();
     std::getline(std::cin, wordlist);
     while (true) {
-    std::cout << "Press the 'F2' key to continue or the 'F3' key for a new word list...\n";
+   std::cout << "Press the 'F2' key to continue, the 'F3' key for a new word list or 'S' to change sleep time...\n";
 
      // Loop until the key is pressed
      while (true) {
@@ -119,21 +123,28 @@ int main() {
              std::cout << "Please enter your word list: ";
              std::cin.clear();  // Clear any errors
              std::getline(std::cin, wordlist);  // Read a new word list from the user
-             std::cout << "Press the 'F2' key to continue or the 'F3' key for a new word list...\n";
+             std::cout << "Press the 'F2' key to continue, the 'F3' key for a new word list or 'S' to change sleep time...\n";
+         }
+         if (GetAsyncKeyState(keyMap['S']) & 0x8000) {
+             std::cout << "Please enter your sleep time: ";
+             std::cin.clear();  // Clear any errors
+             std::cin >> randtime;
+             std::cout << "Press the 'F2' key to continue, the 'F3' key for a new word list or 'S' to change sleep time...\n";
          }
         Sleep(100); // Add a small delay to prevent high CPU usage
      }
-     vectorwordlist.clear();//allows code to run multiple times without stacking up in vector
+     
 
     // Continue with the rest of the code
 
-    
     separate_words(wordlist);
-    //for (int i = 0; i < vectorwordlist.size(); i++) {std::cout << vectorwordlist[i] << '\n';}
+    
+    
     
     TypeString(wordlist);
+    
     std::cout << vectorwordlist.size() << " Words are inside the word list\n" <<words_typed << " Words have been typed\n";
-
+    words_typed = 0;
     Sleep(500);
      
     }
