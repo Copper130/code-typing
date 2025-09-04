@@ -77,16 +77,16 @@ void TypeString(const std::string& text) {
         PressKey(vk);
         ReleaseKey(vk);
         Sleep(ran);
-        
+         
         if (vk == VK_SPACE) {
             words_typed++;
-            PressKey(VK_RETURN);
-            ReleaseKey(VK_RETURN);
+            //PressKey(VK_RETURN);
+            //ReleaseKey(VK_RETURN);
         }
     }
     words_typed++;
    
-}
+} 
 // Map of each letter and the Hexadecimal code for them
 std::map<char, int> keyMap = {
     {'A', 0x41}, {'B', 0x42}, {'C', 0x43}, {'D', 0x44},
